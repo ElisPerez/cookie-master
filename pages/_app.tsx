@@ -1,23 +1,32 @@
-import '../styles/globals.css';
+import { useEffect, useState } from 'react';
 import type { AppContext, AppProps } from 'next/app';
+import '../styles/globals.css';
+
 import { CssBaseline, Theme, ThemeProvider } from '@mui/material';
-import { darkTheme, customTheme, lightTheme } from '../themes';
 import Cookies from 'js-cookie';
+
+import { darkTheme, customTheme, lightTheme } from '../themes';
 
 interface Props extends AppProps {
   theme: string;
 }
 
 function MyApp({ Component, pageProps, theme = 'dark' }: Props) {
-  const cookieTheme = Cookies.get('theme') || 'light'; // Error: Warning: Prop `className` did not match. Server: ...
+  const [currentTheme, setCurrentTheme] = useState(lightTheme);
 
-  console.log({cookieTheme});
+  useEffect(() => {
+    const cookieTheme = Cookies.get('theme') || 'light';
+    // console.log({cookieTheme});
 
-  const currentTheme: Theme = cookieTheme === 'light'
-    ? lightTheme
-    : cookieTheme === 'dark'
-      ? darkTheme
-      : customTheme;
+    const selectedTheme = cookieTheme === 'light'
+      ? lightTheme
+      : cookieTheme === 'dark'
+        ? darkTheme
+        : customTheme;
+
+    setCurrentTheme(selectedTheme);
+  }, []);
+
 
   return (
     <ThemeProvider theme={currentTheme}>
