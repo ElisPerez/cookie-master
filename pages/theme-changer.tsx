@@ -1,7 +1,10 @@
 import { ChangeEvent, useState } from 'react';
+import { GetServerSideProps } from 'next';
 
+import axios from 'axios';
 import Cookies from 'js-cookie';
 import {
+  Button,
   Card,
   CardContent,
   FormControl,
@@ -13,10 +16,12 @@ import {
 
 import { Layout } from '../components/layout';
 
-export const ThemeChangerPage: React.FC = props => {
-  console.log({ props });
+interface Props {
+  theme: string;
+}
 
-  const [currentTheme, setCurrentTheme] = useState('dark');
+export const ThemeChangerPage: React.FC<Props> = ({ theme }) => {
+  const [currentTheme, setCurrentTheme] = useState(theme);
 
   const onThemeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedTheme = e.target.value;
@@ -24,7 +29,13 @@ export const ThemeChangerPage: React.FC = props => {
     setCurrentTheme(selectedTheme);
 
     localStorage.setItem('theme', selectedTheme); // 5Mb capacidad total.
-    Cookies.set('themeCookies', selectedTheme); // 4Kb capacidad total pero son enviadas en la request al server.
+    Cookies.set('theme', selectedTheme); // 4Kb capacidad total pero son enviadas en la request al server.
+  };
+
+  const onClick = async () => {
+    const { data } = await axios.get('/api/hello');
+    console.log(`🚀 data`, data);
+    // const { data } = await axios.get<Interface[]>('/endpoint');
   };
 
   return (
@@ -34,11 +45,12 @@ export const ThemeChangerPage: React.FC = props => {
           <FormControl>
             <FormLabel>Theme</FormLabel>
             <RadioGroup value={currentTheme} onChange={onThemeChange}>
-              <FormControlLabel value={'light'} control={<Radio />} label={'Light'} />
               <FormControlLabel value={'dark'} control={<Radio />} label={'Dark'} />
+              <FormControlLabel value={'light'} control={<Radio />} label={'Light'} />
               <FormControlLabel value={'custom'} control={<Radio />} label={'Custom'} />
             </RadioGroup>
           </FormControl>
+          <Button onClick={onClick}>Request</Button>
         </CardContent>
       </Card>
     </Layout>
@@ -47,15 +59,17 @@ export const ThemeChangerPage: React.FC = props => {
 
 // You should use getServerSideProps when:
 // - Only if you need to pre-render a page whose data must be fetched at request time
-import { GetServerSideProps } from 'next';
 
 export const getServerSideProps: GetServerSideProps = async ({ req }) => {
   // console.log(req);
   // const cookies = req.cookies;
-  const { themeCookies = 'light' } = req.cookies;
+  const { theme = 'light' } = req.cookies;
+
+  const validThemes = ['light', 'dark', 'custom'];
+
   return {
     props: {
-      theme: themeCookies,
+      theme: validThemes.includes(theme) ? theme : 'dark',
     },
   };
 };
